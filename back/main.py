@@ -100,35 +100,21 @@ async def translate_audio(file: UploadFile = File(...)):
         result = stt_pipeline({"array": audio_data, "sampling_rate": sample_rate})
         transcription = result["text"]
         
-        # 2. NER (Extracción de entidades)
+        # 2. NER (Extracción de entidades) (opcional)
         entidades = ner_pipeline(transcription)
         
-        # 3. Extracción de teléfonos con regex
-        telefonos = re.findall(r"\+?\d[\d\s\-]{7,}\d", transcription)
-        
-        # Unir entidades
-        entidades_final = []
-        for e in entidades:
-            entidades_final.append({
-                "tipo": e["entity_group"],
-                "valor": e["word"]
-            })
-        for tel in telefonos:
-            entidades_final.append({
-                "tipo": "TELEFONO",
-                "valor": tel
-            })
-        
-        # 4. Traducción (Español a Inglés)
+
+        # 3. Traducción (Español a Inglés)
         input_ids = tokenizer(transcription, return_tensors="pt").input_ids
         outputs = translation_model.generate(input_ids)
         translated_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
         
-        # 5. Text-to-Speech (Síntesis de voz en inglés)
+        # 4. Text-to-Speech (Síntesis de voz en inglés)
         synthesized_speech = tts_pipeline(translated_text)
         
-        # Guardar audio de salida
+        # Guardar audio de salida (opcional)
         output_audio_path = TEMP_DIR / f"output_{timestamp}_{file.filename}"
+
         sf.write(
             str(output_audio_path),
             synthesized_speech["audio"].squeeze(),
@@ -140,7 +126,7 @@ async def translate_audio(file: UploadFile = File(...)):
         
         return {
             "transcription": transcription,
-            "entities": entidades_final,
+            "entities": entidades,
             "translated_text": translated_text,
             "audio_file": str(output_audio_path.name)
         }
@@ -149,6 +135,9 @@ async def translate_audio(file: UploadFile = File(...)):
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Error procesando audio: {str(e)}")
+
+
+
 
 @app.get("/download-audio/{filename}")
 async def download_audio(filename: str):

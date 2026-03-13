@@ -11,7 +11,7 @@ pip install -r requirements.txt
 ## Ejecutar el servidor
 
 ```bash
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 ## Endpoints
@@ -44,11 +44,11 @@ curl -X POST "http://localhost:8000/translate-audio" \
 
 ```json
 {
-  "transcription": "Hola, mi nombre es Juan",
+  "transcription": "Hola, mi nombre es Pablo",
   "entities": [
-    {"tipo": "PER", "valor": "Juan"}
+    {"tipo": "PER", "valor": "Pablo"}
   ],
-  "translated_text": "Hello, my name is Juan",
+  "translated_text": "Hello, my name is Pablo",
   "audio_file": "output_audio.wav"
 }
 ```
