@@ -3,9 +3,19 @@
   line-height: 1.5;
   font-weight: 400;
 
+  /* Cyberpunk Palette */
+    --cyberpunk-bg: #0a0618;
+    --cyberpunk-bg2: #18122B;
+    --cyberpunk-purple: #7F00FF;
+    --cyberpunk-pink: #FF00C8;
+    --cyberpunk-blue: #00FFF7;
+    --cyberpunk-neon: #39FF14;
+    --cyberpunk-dark: #050312;
+    --cyberpunk-light: #F4F4F4;
+
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+    color: var(--cyberpunk-blue);
+    background-color: var(--cyberpunk-dark);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
