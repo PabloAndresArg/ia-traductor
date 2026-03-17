@@ -98,6 +98,21 @@ const TranslationResult = ({ translation }) => (
           <strong>Traducción</strong>
           <p className="translated-text">{translation.translated_text}</p>
         </div>
+        {Array.isArray(translation.entities) && translation.entities.length > 0 && (
+          <div className="translation-item">
+            <strong>Entidades detectadas</strong>
+            <ul style={{ margin: '8px 0 0 0', padding: 0, listStyle: 'none' }}>
+              {translation.entities.map((ent, idx) => (
+                <li key={idx} style={{ marginBottom: 4 }}>
+                  <span style={{ fontWeight: 500 }}>{ent.entity || ent.label || ent.type || 'Entidad'}:</span> {ent.word || ent.text || ent.value || JSON.stringify(ent)}
+                  {ent.score !== undefined && (
+                    <span style={{ color: '#888', fontSize: 12 }}> (score: {ent.score.toFixed ? ent.score.toFixed(2) : ent.score})</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         <div className="translation-item">
           <strong>Audio traducido</strong>
           <audio

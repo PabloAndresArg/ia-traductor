@@ -6,6 +6,18 @@ import soundfile as sf
 import re
 import os
 from pathlib import Path
+import numpy as np
+
+def convert_entities(entities):
+    def convert_value(val):
+        if isinstance(val, np.generic):
+            return val.item()
+        if isinstance(val, dict):
+            return {k: convert_value(v) for k, v in val.items()}
+        if isinstance(val, list):
+            return [convert_value(i) for i in val]
+        return val
+    return convert_value(entities)
 
 app = FastAPI()
 
@@ -100,19 +112,26 @@ async def translate_audio(file: UploadFile = File(...)):
         audio_data = audio_data.astype(np.float32)
         result = stt_pipeline({"array": audio_data, "sampling_rate": sample_rate})
         transcription = result["text"]
-        
+
+        # Validar que la transcripción no esté vacía ni sea solo espacios
+        if not transcription or not transcription.strip():
+            os.remove(temp_input)
+            raise HTTPException(status_code=400, detail="No se pudo transcribir el audio o el texto está vacío.")
+
         # 2. NER (Extracción de entidades) (opcional)
         entidades = ner_pipeline(transcription)
-        
 
         # 3. Traducción (Español a Inglés)
         input_ids = tokenizer(transcription, return_tensors="pt").input_ids
+        if input_ids.shape[-1] == 0:
+            os.remove(temp_input)
+            raise HTTPException(status_code=400, detail="No se pudo tokenizar el texto para traducir.")
         outputs = translation_model.generate(input_ids)
         translated_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
-        
+
         # 4. Text-to-Speech (Síntesis de voz en inglés)
         synthesized_speech = tts_pipeline(translated_text)
-        
+
         # Guardar audio de salida (opcional)
         output_audio_path = TEMP_DIR / f"output_{timestamp}_{file.filename}"
 
@@ -121,13 +140,13 @@ async def translate_audio(file: UploadFile = File(...)):
             synthesized_speech["audio"].squeeze(),
             synthesized_speech["sampling_rate"]
         )
-        
+
         # Limpiar archivo de entrada
         os.remove(temp_input)
-        
+
         return {
             "transcription": transcription,
-            "entities": entidades,
+            "entities": convert_entities(entidades),
             "translated_text": translated_text,
             "audio_file": str(output_audio_path.name)
         }
