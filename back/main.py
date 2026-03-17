@@ -25,6 +25,9 @@ tokenizer = None
 translation_model = None
 tts_pipeline = None
 
+
+
+
 def load_models():
     """Carga los modelos de forma lazy"""
     global stt_pipeline, ner_pipeline, tokenizer, translation_model, tts_pipeline
@@ -78,8 +81,6 @@ async def translate_audio(file: UploadFile = File(...)):
     - Audio sintetizado en inglés
     """
     try:
-        # Cargar modelos si no están cargados
-        load_models()
         
         # Guardar archivo temporal
         import time
@@ -153,3 +154,5 @@ async def download_audio(filename: str):
         media_type="audio/wav",
         filename=filename
     )
+
+load_models()
